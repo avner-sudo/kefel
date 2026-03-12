@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>לוח הכפל של ליב</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+    }
+
+    h1 {
+      color: white;
+      font-size: 2rem;
+      margin-bottom: 6px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .score-bar {
+      color: white;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 30px;
+    }
+
+    .score-bar span { background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 20px; }
+
+    .container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Exercise panel - left side */
+    .exercise-panel {
+      background: white;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+      min-width: 250px;
+      order: 2;
+    }
+
+    .exercise-label {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .exercise {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .exercise .operator { color: #764ba2; margin: 0 8px; }
+    .exercise .equals { color: #999; margin: 0 8px; }
+    .exercise .answer-box {
+      display: inline-block;
+      min-width: 80px;
+      border-bottom: 4px solid #764ba2;
+      color: #667eea;
+      min-height: 55px;
+    }
+
+    .feedback {
+      font-size: 1.4rem;
+      min-height: 40px;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .feedback.correct { color: #27ae60; }
+    .feedback.wrong { color: #e74c3c; }
+
+    .hint-btn {
+      margin-top: 15px;
+      padding: 8px 20px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hint-btn:hover { background: #764ba2; }
+
+    /* Multiplication table - right side */
+    .table-panel {
+      background: white;
+      border-radius: 20px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      order: 1;
+    }
+
+    .table-label {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .mult-table {
+      border-collapse: collapse;
+    }
+
+    .mult-table td, .mult-table th {
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      font-size: 0.95rem;
+      border: 1px solid #e0e0e0;
+      transition: all 0.15s;
+    }
+
+    .mult-table th {
+      background: #667eea;
+      color: white;
+      font-weight: bold;
+      border-color: #5a6fd6;
+    }
+
+    .mult-table .corner {
+      background: #764ba2;
+      font-size: 1.3rem;
+    }
+
+    .mult-table td {
+      cursor: pointer;
+      background: #fafafa;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .mult-table td:hover {
+      background: #667eea;
+      color: white;
+      transform: scale(1.1);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+      border-radius: 6px;
+      z-index: 1;
+      position: relative;
+    }
+
+    .mult-table td.highlight-row,
+    .mult-table th.highlight-row {
+      background: #e8ecff;
+    }
+
+    .mult-table td.highlight-col,
+    .mult-table th.highlight-col {
+      background: #e8ecff;
+    }
+
+    .mult-table td.correct-flash {
+      background: #27ae60 !important;
+      color: white !important;
+      animation: pop 0.4s ease;
+    }
+
+    .mult-table td.wrong-flash {
+      background: #e74c3c !important;
+      color: white !important;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .streak {
+      text-align: center;
+      margin-top: 8px;
+      font-size: 1.2rem;
+      min-height: 28px;
+    }
+
+    @media (max-width: 750px) {
+      .container { flex-direction: column; align-items: center; }
+      .exercise-panel { order: 1; }
+      .table-panel { order: 2; }
+      .mult-table td, .mult-table th { width: 36px; height: 36px; font-size: 0.9rem; }
+      .exercise { font-size: 2.5rem; }
+      h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>&#x2728; לוח הכפל של ליב &#x2728;</h1>
+  <div class="score-bar">
+    <span>&#x2705; נכון: <strong id="correctCount">0</strong></span>
+    <span>&#x274C; שגוי: <strong id="wrongCount">0</strong></span>
+  </div>
+
+  <div class="container">
+    <!-- Exercise panel (left visually in RTL) -->
+    <div class="exercise-panel">
+      <div class="exercise-label">מה התשובה? לחצי על לוח הכפל!</div>
+      <div class="exercise">
+        <span id="numA">3</span>
+        <span class="operator">&times;</span>
+        <span id="numB">7</span>
+        <span class="equals">=</span>
+        <span class="answer-box" id="answerBox"></span>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <button class="hint-btn" id="hintBtn">&#x1F4A1; רמז</button>
+    </div>
+
+    <!-- Table panel (right visually in RTL) -->
+    <div class="table-panel">
+      <div class="table-label">לוח הכפל</div>
+      <table class="mult-table" id="multTable"></table>
+      <div class="streak" id="streak"></div>
+    </div>
+  </div>
+
+  <script>
+    let numA, numB, correctAnswer;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let streakCount = 0;
+    let waiting = false;
+
+    const table = document.getElementById('multTable');
+    const answerBox = document.getElementById('answerBox');
+    const feedback = document.getElementById('feedback');
+    const streakEl = document.getElementById('streak');
+    const hintBtn = document.getElementById('hintBtn');
+
+    function buildTable() {
+      let html = '<tr><th class="corner">&times;</th>';
+      for (let c = 1; c <= 10; c++) html += '<th id="col-' + c + '">' + c + '</th>';
+      html += '</tr>';
+      for (let r = 1; r <= 10; r++) {
+        html += '<tr><th id="row-' + r + '">' + r + '</th>';
+        for (let c = 1; c <= 10; c++) {
+          html += '<td data-row="' + r + '" data-col="' + c + '" id="cell-' + r + '-' + c + '">' + (r * c) + '</td>';
+        }
+        html += '</tr>';
+      }
+      table.innerHTML = html;
+
+      table.querySelectorAll('td').forEach(function(td) {
+        td.addEventListener('click', function() { handleClick(td); });
+      });
+    }
+
+    function newExercise() {
+      numA = Math.floor(Math.random() * 10) + 1;
+      numB = Math.floor(Math.random() * 10) + 1;
+      correctAnswer = numA * numB;
+      document.getElementById('numA').textContent = numA;
+      document.getElementById('numB').textContent = numB;
+      answerBox.textContent = '';
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+      waiting = false;
+      clearHighlights();
+    }
+
+    function clearHighlights() {
+      table.querySelectorAll('.highlight-row, .highlight-col').forEach(function(el) {
+        el.classList.remove('highlight-row', 'highlight-col');
+      });
+    }
+
+    function handleClick(td) {
+      if (waiting) return;
+
+      var val = parseInt(td.textContent);
+      answerBox.textContent = val;
+
+      if (val === correctAnswer) {
+        td.classList.add('correct-flash');
+        feedback.textContent = '\u{1F389} !כל הכבוד';
+        feedback.className = 'feedback correct';
+        correctCount++;
+        streakCount++;
+        document.getElementById('correctCount').textContent = correctCount;
+        updateStreak();
+        waiting = true;
+        setTimeout(function() {
+          td.classList.remove('correct-flash');
+          newExercise();
+        }, 1200);
+      } else {
+        td.classList.add('wrong-flash');
+        feedback.textContent = '\u{1F914} לא נכון, נסי שוב!';
+        feedback.className = 'feedback wrong';
+        wrongCount++;
+        streakCount = 0;
+        document.getElementById('wrongCount').textContent = wrongCount;
+        updateStreak();
+        setTimeout(function() { td.classList.remove('wrong-flash'); }, 400);
+      }
+    }
+
+    function updateStreak() {
+      if (streakCount >= 3) {
+        var fires = '';
+        for (var i = 0; i < Math.min(streakCount, 10); i++) fires += '\u{1F525}';
+        streakEl.textContent = fires + ' \u05E8\u05E6\u05E3 \u05E9\u05DC ' + streakCount + '!';
+      } else {
+        streakEl.textContent = '';
+      }
+    }
+
+    hintBtn.addEventListener('click', function() {
+      clearHighlights();
+      var rowH = document.getElementById('row-' + numA);
+      var colH = document.getElementById('col-' + numB);
+      if (rowH) rowH.classList.add('highlight-row');
+      if (colH) colH.classList.add('highlight-col');
+      for (var i = 1; i <= 10; i++) {
+        var rCell = document.getElementById('cell-' + numA + '-' + i);
+        var cCell = document.getElementById('cell-' + i + '-' + numB);
+        if (rCell) rCell.classList.add('highlight-row');
+        if (cCell) cCell.classList.add('highlight-col');
+      }
+    });
+
+    buildTable();
+    newExercise();
+  </script>
+</body>
+</html>
